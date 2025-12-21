@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cloudy Cup ☁️</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ☁️ CLOUD BACKGROUND -->
+<div class="cloud cloud1"></div>
+<div class="cloud cloud2"></div>
+<div class="cloud cloud3"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-card">
+    <h1>Cloudy Cup ☁️</h1>
+    <p>Soft, sweet sips in every cup 🧋</p>
+  </div>
+</header>
+
+<!-- ORDER FORM -->
+<section class="order-section">
+  <form 
+    class="order-card"
+    id="orderForm"
+    action="https://formspree.io/f/xeejgvew"
+    method="POST"
+  >
+
+    <!-- LEFT -->
+    <div class="order-left">
+      <h3>🧾 Order Details</h3>
+      <div id="orderItems">No items yet. Add drinks from the menu ☁️</div>
+      <div class="total">Total: ₱<span id="totalPrice">0</span></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="order-right">
+      <input type="text" name="name" placeholder="Full Name" required>
+      <input type="text" name="address" placeholder="Address" required>
+      <input type="text" name="contact" placeholder="Contact Number" required>
+
+      <select name="payment" id="paymentMethod" required>
+        <option value="">Select Payment Method</option>
+        <option value="Cash on Delivery">Cash on Delivery</option>
+        <option value="GCash">GCash</option>
+      </select>
+
+      <!-- GCash Auto Show -->
+      <div class="gcash-box" id="gcashBox">
+        📱 GCash Number: <b>09929440921</b>
+      </div>
+
+      <!-- Hidden (for email) -->
+      <input type="hidden" name="order_summary" id="orderSummary">
+      <input type="hidden" name="order_total" id="orderTotal">
+
+      <button type="submit" class="confirm">Confirm Order</button>
+
+      <!-- Success Message -->
+      <div class="success" id="successMsg">✅ Order Sent! Thank you ☁️</div>
+
+      <p class="note">
+        Orders sent to <b>dreamedia.enterprise@gmail.com</b>
+      </p>
+    </div>
+
+  </form>
+</section>
+
+<!-- MENU -->
+<section class="menu-wrap">
+
+  <h2 class="section-title">🧋 Classic Milk Tea</h2>
+  <div class="grid" id="classicGrid"></div>
+
+  <h2 class="section-title">🍓 Fruit Tea</h2>
+  <div class="grid" id="fruitGrid"></div>
+
+  <h2 class="section-title">🍫🍵 Choco / Matcha</h2>
+  <div class="grid" id="specialGrid"></div>
+
+</section>
+
+<footer>
+  Cloudy Cup ☁️ • Real Order System • Portfolio Project
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
