@@ -4,93 +4,232 @@
   <meta charset="UTF-8" />
   <title>Cloudy Cup ☁️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cloudy Cup — Soft, sweet sips in every cup. Order milk tea and fruit tea." />
 
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
-
-<!-- ☁️ CLOUD BACKGROUND -->
-<div class="cloud cloud1"></div>
-<div class="cloud cloud2"></div>
-<div class="cloud cloud3"></div>
-
-<!-- HERO -->
-<header class="hero">
-  <div class="hero-card">
-    <h1>Cloudy Cup ☁️</h1>
-    <p>Soft, sweet sips in every cup 🧋</p>
+  <!-- BG DECOR -->
+  <div class="bgOrbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
   </div>
-</header>
 
-<!-- ORDER FORM -->
-<section class="order-section">
-  <form 
-    class="order-card"
-    id="orderForm"
-    action="https://formspree.io/f/xeejgvew"
-    method="POST"
-  >
-
-    <!-- LEFT -->
-    <div class="order-left">
-      <h3>🧾 Order Details</h3>
-      <div id="orderItems">No items yet. Add drinks from the menu ☁️</div>
-      <div class="total">Total: ₱<span id="totalPrice">0</span></div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="order-right">
-      <input type="text" name="name" placeholder="Full Name" required>
-      <input type="text" name="address" placeholder="Address" required>
-      <input type="text" name="contact" placeholder="Contact Number" required>
-
-      <select name="payment" id="paymentMethod" required>
-        <option value="">Select Payment Method</option>
-        <option value="Cash on Delivery">Cash on Delivery</option>
-        <option value="GCash">GCash</option>
-      </select>
-
-      <!-- GCash Auto Show -->
-      <div class="gcash-box" id="gcashBox">
-        📱 GCash Number: <b>09929440921</b>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brandLogo">☁️</div>
+        <div class="brandText">
+          <div class="brandName">Cloudy Cup</div>
+          <div class="brandSub">Soft, sweet sips in every cup</div>
+        </div>
       </div>
 
-      <!-- Hidden (for email) -->
-      <input type="hidden" name="order_summary" id="orderSummary">
-      <input type="hidden" name="order_total" id="orderTotal">
+      <nav class="nav">
+        <a href="#menu">Menu</a>
+        <a href="#order">Order</a>
+        <a href="#footer">Contact</a>
+      </nav>
 
-      <button type="submit" class="confirm">Confirm Order</button>
-
-      <!-- Success Message -->
-      <div class="success" id="successMsg">✅ Order Sent! Thank you ☁️</div>
-
-      <p class="note">
-        Orders sent to <b>dreamedia.enterprise@gmail.com</b>
-      </p>
+      <button class="pillTotal" id="topTotalBtn" type="button" aria-label="View order summary">
+        <span class="pillLabel">Total</span>
+        <span class="pillValue">₱<span id="topTotal">0</span></span>
+        <span class="pillCount" id="topCount">0</span>
+      </button>
     </div>
+  </header>
 
-  </form>
-</section>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="heroOverlay"></div>
 
-<!-- MENU -->
-<section class="menu-wrap">
+    <div class="heroInner">
+      <div class="heroCard">
+        <div class="kicker">MILK TEA • FRUIT TEA • SPECIALS</div>
+        <h1>Cloudy Cup ☁️</h1>
+        <p>Soft, sweet sips in every cup 🧋</p>
 
-  <h2 class="section-title">🧋 Classic Milk Tea</h2>
-  <div class="grid" id="classicGrid"></div>
+        <div class="heroBadges">
+          <span class="chip">⭐ Best Sellers</span>
+          <span class="chip">🚚 Delivery-ready</span>
+          <span class="chip">💌 Email Orders</span>
+        </div>
 
-  <h2 class="section-title">🍓 Fruit Tea</h2>
-  <div class="grid" id="fruitGrid"></div>
+        <div class="heroCtas">
+          <a class="btn btnPrimary" href="#menu">Browse Menu</a>
+          <a class="btn btnGhost" href="#order">Go to Checkout</a>
+        </div>
 
-  <h2 class="section-title">🍫🍵 Choco / Matcha</h2>
-  <div class="grid" id="specialGrid"></div>
+        <div class="heroMini">
+          Orders go to <b>dreamedia.enterprise@gmail.com</b>
+        </div>
+      </div>
+    </div>
+  </section>
 
-</section>
+  <!-- PAGE -->
+  <main class="page" id="order">
+    <!-- ORDER + CHECKOUT -->
+    <section class="orderSection">
+      <div class="orderCard">
+        <!-- LEFT: Summary -->
+        <div class="orderLeft">
+          <div class="sectionHead">
+            <h2>🧾 Order Details</h2>
+            <div class="totalPill">
+              Total: <span class="gold">₱<span id="totalPrice">0</span></span>
+            </div>
+          </div>
 
-<footer>
-  Cloudy Cup ☁️ • Real Order System • Portfolio Project
-</footer>
+          <div class="orderItems" id="orderItems" aria-live="polite">
+            <div class="empty" id="emptyMsg">No items yet. Add drinks from the menu ☁️</div>
+          </div>
 
-<script src="script.js"></script>
+          <div class="orderHint">
+            Tip: use <b>+ / −</b> buttons on the menu cards. You can also edit quantities here.
+          </div>
+        </div>
+
+        <!-- RIGHT: Form -->
+        <form
+          class="orderRight"
+          id="orderForm"
+          action="https://formspree.io/f/xeejgvew"
+          method="POST"
+        >
+          <div class="formTitle">Checkout</div>
+          <div class="formSub">Fill out details then confirm your order.</div>
+
+          <label class="field">
+            <span>Full Name</span>
+            <input type="text" name="name" placeholder="Full Name" required autocomplete="name">
+          </label>
+
+          <label class="field">
+            <span>Address</span>
+            <input type="text" name="address" placeholder="Address" required autocomplete="street-address">
+          </label>
+
+          <label class="field">
+            <span>Contact Number</span>
+            <input type="text" name="contact" placeholder="Contact Number" required inputmode="numeric">
+          </label>
+
+          <label class="field">
+            <span>Payment Method</span>
+            <select name="payment" id="paymentMethod" required>
+              <option value="">Select Payment Method</option>
+              <option value="Cash on Delivery">Cash on Delivery</option>
+              <option value="GCash">GCash</option>
+            </select>
+          </label>
+
+          <!-- GCash Auto Show -->
+          <div class="gcashBox" id="gcashBox" hidden>
+            <div class="gcashTitle">📱 GCash Number</div>
+            <div class="gcashNum">09929440921</div>
+            <div class="gcashMini">Send only after confirmation.</div>
+          </div>
+
+          <!-- Hidden (for email) -->
+          <input type="hidden" name="order_summary" id="orderSummary">
+          <input type="hidden" name="order_total" id="orderTotal">
+          <input type="hidden" name="_subject" value="Cloudy Cup — New Order">
+          <input type="hidden" name="receiverEmail" value="dreamedia.enterprise@gmail.com">
+
+          <button type="submit" class="confirm" id="submitBtn">
+            <span class="btnText">Confirm Order</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+
+          <div class="inlineMsg success" id="successMsg" hidden>✅ Order Sent! Thank you ☁️</div>
+          <div class="inlineMsg error" id="errorMsg" hidden>❌ Something went wrong. Try again.</div>
+
+          <p class="note">
+            Orders sent to <b>dreamedia.enterprise@gmail.com</b><br/>
+            Contact: <b>09929440921</b>
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MENU -->
+    <section class="menuWrap" id="menu">
+      <div class="menuTop">
+        <div>
+          <h2 class="menuTitle">🧋 Cloudy Cup Menu</h2>
+          <p class="menuSub">Tap + to add, − to remove. Your total updates instantly.</p>
+        </div>
+
+        <div class="tabs" id="tabs" role="tablist" aria-label="Menu categories">
+          <button class="tab active" data-tab="classic" role="tab" aria-selected="true">Classic Milk Tea</button>
+          <button class="tab" data-tab="fruit" role="tab" aria-selected="false">Fruit Tea</button>
+          <button class="tab" data-tab="special" role="tab" aria-selected="false">Choco / Matcha</button>
+        </div>
+      </div>
+
+      <div class="grid" id="menuGrid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <!-- MOBILE STICKY BAR -->
+  <div class="mobileBar" id="mobileBar" aria-label="Order total bar">
+    <div class="mbLeft">
+      <div class="mbLabel">TOTAL</div>
+      <div class="mbTotal">₱<span id="mobileTotal">0</span></div>
+    </div>
+    <button class="mbBtn" id="mobileGoOrder" type="button">
+      View Order <span class="mbCount" id="mobileCount">0</span>
+    </button>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div class="modal" id="successModal" hidden aria-hidden="true">
+    <div class="modalBackdrop" data-close="1"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Order success">
+      <div class="modalTop">
+        <div class="modalBadge">✅ Order Sent</div>
+        <button class="modalX" type="button" data-close="1" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modalTitle">Thanks for ordering! ☁️</div>
+      <div class="modalSub">We’ll message you to confirm your order.</div>
+
+      <div class="modalBox">
+        <div class="modalRow">
+          <span>Order</span>
+          <b id="modalSummary">—</b>
+        </div>
+        <div class="modalRow">
+          <span>Total</span>
+          <b class="gold" id="modalTotal">₱0</b>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="modalBtn ghost" type="button" id="modalBrowse">Browse Menu</button>
+        <button class="modalBtn" type="button" id="modalClose">Close</button>
+      </div>
+
+      <div class="modalMini">
+        Contact: <b>09929440921</b> • Email: <b>dreamedia.enterprise@gmail.com</b>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" id="footer">
+    <div class="footerInner">
+      <div class="footerBrand">Cloudy Cup ☁️</div>
+      <div class="footerLine">Contact: 09929440921</div>
+      <div class="footerLine">Email: dreamedia.enterprise@gmail.com</div>
+      <div class="footerMini">Real Order System • Client-ready demo</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
