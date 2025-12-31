@@ -1,3 +1,10 @@
+// Cloudy Cup — Premium Upgrade (Frontend + Formspree)
+// - Tabs per category (classic/fruit/special)
+// - Proper cart state (no reset bug)
+// - Order panel editable quantities
+// - Top total pill + mobile sticky total bar
+// - Safer submit: prevent empty cart, loading state, success modal
+
 const menu = {
   classic:[
     {id:"c1",name:"Classic Milk Tea",price:120,img:"https://i.pinimg.com/736x/81/a4/bb/81a4bbf789dc005db307140990fcad69.jpg",best:true},
@@ -19,66 +26,300 @@ const menu = {
   ]
 };
 
-const cart={};
-const orderItems=document.getElementById("orderItems");
-const totalPrice=document.getElementById("totalPrice");
-const orderSummary=document.getElementById("orderSummary");
-const orderTotal=document.getElementById("orderTotal");
+// cart: id -> qty
+const cart = {};
 
-function render(category,target){
-  const grid=document.getElementById(target);
-  menu[category].forEach(item=>{
-    cart[item.id]=0;
-    grid.innerHTML+=`
+// DOM
+const menuGrid = document.getElementById("menuGrid");
+const orderItems = document.getElementById("orderItems");
+const emptyMsg = document.getElementById("emptyMsg");
+
+const totalPrice = document.getElementById("totalPrice");
+const topTotalBtn = document.getElementById("topTotalBtn");
+const topTotal = document.getElementById("topTotal");
+const topCount = document.getElementById("topCount");
+
+const mobileTotal = document.getElementById("mobileTotal");
+const mobileCount = document.getElementById("mobileCount");
+const mobileGoOrder = document.getElementById("mobileGoOrder");
+
+const paymentMethod = document.getElementById("paymentMethod");
+const gcashBox = document.getElementById("gcashBox");
+
+const orderSummary = document.getElementById("orderSummary");
+const orderTotal = document.getElementById("orderTotal");
+
+const orderForm = document.getElementById("orderForm");
+const submitBtn = document.getElementById("submitBtn");
+const successMsg = document.getElementById("successMsg");
+const errorMsg = document.getElementById("errorMsg");
+
+const successModal = document.getElementById("successModal");
+const modalSummary = document.getElementById("modalSummary");
+const modalTotal = document.getElementById("modalTotal");
+const modalBrowse = document.getElementById("modalBrowse");
+const modalClose = document.getElementById("modalClose");
+
+let activeTab = "classic";
+
+// helpers
+function peso(n){ return (Number(n)||0).toLocaleString("en-PH"); }
+
+function getAllItems(){
+  return Object.values(menu).flat();
+}
+function findById(id){
+  return getAllItems().find(x => x.id === id);
+}
+function getQty(id){
+  return cart[id] || 0;
+}
+function setQty(id, qty){
+  const v = Math.max(0, Number(qty)||0);
+  if(v === 0) delete cart[id];
+  else cart[id] = v;
+}
+function add(id){ setQty(id, getQty(id)+1); }
+function sub(id){ setQty(id, getQty(id)-1); }
+
+function cartCount(){
+  return Object.values(cart).reduce((a,b)=>a+b,0);
+}
+function cartTotal(){
+  let t = 0;
+  for(const id of Object.keys(cart)){
+    const item = findById(id);
+    if(!item) continue;
+    t += item.price * cart[id];
+  }
+  return t;
+}
+function buildSummary(){
+  const parts = [];
+  for(const id of Object.keys(cart)){
+    const item = findById(id);
+    if(!item) continue;
+    parts.push(`${cart[id]}x ${item.name} (₱${item.price})`);
+  }
+  return parts.join(" | ");
+}
+
+// UI render
+function renderTabs(){
+  const tabs = document.getElementById("tabs");
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if(!btn) return;
+
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.classList.remove("active");
+      t.setAttribute("aria-selected","false");
+    });
+    btn.classList.add("active");
+    btn.setAttribute("aria-selected","true");
+
+    activeTab = btn.dataset.tab;
+    renderMenu();
+  });
+}
+
+function renderMenu(){
+  const list = menu[activeTab] || [];
+  menuGrid.innerHTML = list.map(item => {
+    const q = getQty(item.id);
+    return `
       <div class="card">
-        ${item.best?'<div class="badge">⭐ Best Seller</div>':''}
-        <img src="${item.img}">
-        <div class="card-body">
-          <div>${item.name}</div>
-          <div>₱${item.price}</div>
-          <div class="qty">
-            <button onclick="changeQty('${item.id}',-1)">−</button>
-            <span id="${item.id}">0</span>
-            <button onclick="changeQty('${item.id}',1)">+</button>
+        <div class="cardMedia">
+          ${item.best ? `<div class="badge">⭐ Best Seller</div>` : ``}
+          <img src="${item.img}" alt="${item.name}" loading="lazy">
+        </div>
+        <div class="cardBody">
+          <div class="cardName">${item.name}</div>
+          <div class="cardPrice">₱${peso(item.price)}</div>
+          <div class="cardQty">
+            <button class="qtyBtn" data-act="minus" data-id="${item.id}" ${q===0 ? "disabled" : ""}>−</button>
+            <div class="qtyCount" id="qty-${item.id}">${q}</div>
+            <button class="qtyBtn" data-act="plus" data-id="${item.id}">+</button>
           </div>
         </div>
-      </div>`;
+      </div>
+    `;
+  }).join("");
+
+  // bind
+  menuGrid.querySelectorAll(".qtyBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.id;
+      const act = btn.dataset.act;
+      if(act === "plus") add(id);
+      if(act === "minus") sub(id);
+      updateUI();
+      renderMenu(); // refresh disabled state
+    });
   });
 }
 
-function changeQty(id,val){
-  cart[id]=Math.max(0,cart[id]+val);
-  document.getElementById(id).innerText=cart[id];
-  updateOrder();
+function renderOrderPanel(){
+  const ids = Object.keys(cart);
+
+  if(ids.length === 0){
+    emptyMsg.hidden = false;
+    orderItems.innerHTML = `<div class="empty" id="emptyMsg">No items yet. Add drinks from the menu ☁️</div>`;
+    return;
+  }
+
+  emptyMsg.hidden = true;
+
+  orderItems.innerHTML = ids.map(id=>{
+    const item = findById(id);
+    const qty = getQty(id);
+    const subtotal = (item?.price||0) * qty;
+
+    return `
+      <div class="lineItem">
+        <div class="lineLeft">
+          <div class="lineName">${item?.name || id}</div>
+          <div class="lineSub">₱${peso(item?.price||0)} × ${qty} = <b>₱${peso(subtotal)}</b></div>
+        </div>
+
+        <div class="qtyPill">
+          <button class="qBtn" data-line="minus" data-id="${id}" ${qty===0?"disabled":""}>−</button>
+          <div class="qVal">${qty}</div>
+          <button class="qBtn" data-line="plus" data-id="${id}">+</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  orderItems.querySelectorAll(".qBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.id;
+      const act = btn.dataset.line;
+      if(act === "plus") add(id);
+      if(act === "minus") sub(id);
+      updateUI();
+      renderMenu();
+    });
+  });
 }
 
-function updateOrder(){
-  let total=0,summary="";
-  orderItems.innerHTML="";
-  Object.values(menu).flat().forEach(item=>{
-    if(cart[item.id]>0){
-      total+=cart[item.id]*item.price;
-      summary+=`${cart[item.id]}x ${item.name}, `;
-      orderItems.innerHTML+=`<div>${cart[item.id]}x ${item.name}</div>`;
+function updateTotals(){
+  const total = cartTotal();
+  const count = cartCount();
+
+  totalPrice.textContent = peso(total);
+  topTotal.textContent = peso(total);
+  topCount.textContent = String(count);
+
+  mobileTotal.textContent = peso(total);
+  mobileCount.textContent = String(count);
+
+  orderSummary.value = buildSummary();
+  orderTotal.value = `₱${peso(total)}`;
+}
+
+function updateUI(){
+  updateTotals();
+  renderOrderPanel();
+}
+
+function goToOrder(){
+  document.querySelector("#order")?.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+function goToMenu(){
+  document.querySelector("#menu")?.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+// Payment show/hide
+paymentMethod.addEventListener("change", (e)=>{
+  const isGCash = e.target.value === "GCash";
+  gcashBox.hidden = !isGCash;
+});
+
+// Top / Mobile buttons
+topTotalBtn.addEventListener("click", goToOrder);
+mobileGoOrder.addEventListener("click", goToOrder);
+
+// Modal
+function openModal(summary, total){
+  modalSummary.textContent = summary || "—";
+  modalTotal.textContent = `₱${peso(total)}`;
+  successModal.hidden = false;
+  successModal.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+}
+function closeModal(){
+  successModal.hidden = true;
+  successModal.setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+}
+successModal.addEventListener("click", (e)=>{
+  if(e.target?.getAttribute?.("data-close")) closeModal();
+});
+modalClose.addEventListener("click", closeModal);
+modalBrowse.addEventListener("click", ()=>{
+  closeModal();
+  goToMenu();
+});
+
+// Submit (AJAX Formspree)
+orderForm.addEventListener("submit", (e)=>{
+  e.preventDefault();
+
+  successMsg.hidden = true;
+  errorMsg.hidden = true;
+
+  if(cartCount() === 0){
+    alert("Add at least 1 drink first ☁️🧋");
+    goToMenu();
+    return;
+  }
+
+  updateUI();
+
+  submitBtn.disabled = true;
+  submitBtn.classList.add("loading");
+
+  const totalBefore = cartTotal();
+  const summaryBefore = buildSummary();
+
+  const data = new FormData(orderForm);
+
+  fetch(orderForm.action, {
+    method: "POST",
+    body: data,
+    headers: { "Accept": "application/json" }
+  })
+  .then(res=>{
+    if(res.ok){
+      successMsg.hidden = false;
+
+      // Clear cart
+      for(const k of Object.keys(cart)) delete cart[k];
+
+      orderForm.reset();
+      gcashBox.hidden = true;
+
+      updateUI();
+      renderMenu();
+
+      openModal(summaryBefore, totalBefore);
+
+      setTimeout(()=>{ successMsg.hidden = true; }, 2000);
+    }else{
+      errorMsg.hidden = false;
     }
+  })
+  .catch(()=>{
+    errorMsg.hidden = false;
+  })
+  .finally(()=>{
+    submitBtn.disabled = false;
+    submitBtn.classList.remove("loading");
   });
-  if(total===0) orderItems.innerText="No items yet. Add drinks from the menu ☁️";
-  totalPrice.innerText=total;
-  orderSummary.value=summary;
-  orderTotal.value=total;
-}
-
-/* GCash auto show */
-document.getElementById("paymentMethod").addEventListener("change",e=>{
-  document.getElementById("gcashBox").style.display=
-    e.target.value==="GCash"?"block":"none";
 });
 
-/* Success animation */
-document.getElementById("orderForm").addEventListener("submit",()=>{
-  document.getElementById("successMsg").style.display="block";
-});
-
-render("classic","classicGrid");
-render("fruit","fruitGrid");
-render("special","specialGrid");
+// init
+renderTabs();
+renderMenu();
+updateUI();
